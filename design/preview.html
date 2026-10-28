@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PDF 题目助手 · 视觉设计稿 v0.1</title>
+<style>
+/* ============================================================
+   PDF 题目助手 —— 设计令牌
+   气质：暖纸工作台 + 发丝线 + 克制的墨蓝。不用大阴影、不用高饱和。
+   ============================================================ */
+:root{
+  --font-ui: "Inter", -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-serif: "Songti SC", "Source Han Serif SC", "SimSun", Georgia, serif;
+  --font-math: "Cambria Math", "Latin Modern Math", "Times New Roman", serif;
+
+  --bg:        #EDE8DF;
+  --panel:     #F7F4EE;
+  --panel-2:   #FBF9F5;
+  --paper:     #FFFFFF;
+  --line:      #DED7CB;
+  --line-2:    #CBC2B3;
+  --ink:       #191C1F;
+  --ink-2:     #565C63;
+  --ink-3:     #8D939A;
+  --accent:    #23456B;
+  --accent-2:  #3F6E9F;
+  --accent-ink:#FFFFFF;
+  --soft:      rgba(35,69,107,.07);
+  --soft-2:    rgba(35,69,107,.12);
+  --gold:      #A8843F;
+  --ok:        #2F7A55;
+  --warn:      #A9761A;
+  --danger:    #B03A2E;
+  --shadow-page: 0 1px 2px rgba(40,32,22,.06), 0 12px 32px rgba(40,32,22,.10);
+  --shadow-pop:  0 2px 6px rgba(40,32,22,.10), 0 14px 30px rgba(40,32,22,.14);
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-pill: 999px;
+  --t-fast: 140ms; --t-base: 220ms; --ease: cubic-bezier(.2,.7,.3,1);
+}
+html[data-theme="dark"]{
+  --bg:        #0C1013;
+  --panel:     #131A20;
+  --panel-2:   #182129;
+  --paper:     #1C1A17;
+  --line:      #2A343C;
+  --line-2:    #3A464F;
+  --ink:       #E7EBEF;
+  --ink-2:     #A3AFB9;
+  --ink-3:     #6E7B85;
+  --accent:    #8FB3D8;
+  --accent-2:  #A9C6E6;
+  --accent-ink:#0B1520;
+  --soft:      rgba(143,179,216,.10);
+  --soft-2:    rgba(143,179,216,.18);
+  --shadow-page: 0 1px 2px rgba(0,0,0,.5), 0 16px 40px rgba(0,0,0,.45);
+  --shadow-pop:  0 2px 8px rgba(0,0,0,.5), 0 18px 38px rgba(0,0,0,.5);
+}
+html[data-theme="dark"] .paper-sheet{ color:#E9E3D5; }
+html[data-theme="dark"] .paper-sheet .cn-title,
+html[data-theme="dark"] .paper-sheet .cn-sub,
+html[data-theme="dark"] .paper-sheet .section-head{ color:#EDE7DA; }
+html[data-theme="dark"] .paper-sheet .q-text{ color:#DED7C8; }
+html[data-theme="dark"] .paper-sheet .cn-meta{ color:#9A9384; }
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--font-ui); font-size:13.5px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  transition:background var(--t-base) var(--ease), color var(--t-base) var(--ease);
+}
+button{ font:inherit; color:inherit; background:none; border:none; padding:0; cursor:pointer; }
+::selection{ background:var(--soft-2); }
+
+/* 滚动条 */
+.scroll{ scrollbar-width:thin; scrollbar-color:var(--line-2) transparent; }
+.scroll::-webkit-scrollbar{ width:9px; height:9px; }
+.scroll::-webkit-scrollbar-thumb{ background:var(--line-2); border-radius:9px; border:2px solid transparent; background-clip:padding-box; }
+.scroll::-webkit-scrollbar-track{ background:transparent; }
+
+/* ---------------- 骨架 ---------------- */
+.app{ height:100%; display:flex; flex-direction:column; overflow:hidden; }
+
+.topbar{
+  height:54px; flex:0 0 54px; display:flex; align-items:center; gap:14px;
+  padding:0 14px 0 18px; background:var(--panel); border-bottom:1px solid var(--line);
+  position:relative; z-index:30;
+}
+.brand{ display:flex; align-items:center; gap:9px; }
+.brand .mark{ width:26px; height:26px; color:var(--accent); }
+.brand .name{
+  font-family:var(--font-serif); font-size:17.5px; letter-spacing:.06em; font-weight:600;
+  white-space:nowrap;
+}
+.brand .en{
+  font-size:9px; letter-spacing:.16em; color:var(--ink-3); margin-top:3px; white-space:nowrap;
+}
+.vsep{ width:1px; height:22px; background:var(--line); }
+
+.file-chip{
+  display:flex; align-items:center; gap:8px; height:32px; padding:0 10px 0 9px;
+  border-radius:var(--r-pill); border:1px solid transparent; min-width:0;
+}
+.file-chip:hover{ background:var(--panel-2); border-color:var(--line); }
+.file-chip .fname{ font-size:13px; max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.file-chip .meta{ font-size:11.5px; color:var(--ink-3); white-space:nowrap; }
+.file-chip svg{ color:var(--ink-3); flex:0 0 auto; }
+
+.top-right{ margin-left:auto; display:flex; align-items:center; gap:6px; }
+.btn{
+  display:inline-flex; align-items:center; gap:7px; height:32px; padding:0 11px;
+  border-radius:var(--r-sm); font-size:13px; color:var(--ink-2); white-space:nowrap;
+  transition:background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.btn:hover{ background:var(--soft); color:var(--ink); }
+.btn svg{ flex:0 0 auto; }
+.btn-primary{
+  background:var(--accent); color:var(--accent-ink); padding:0 14px;
+  box-shadow:0 4px 14px rgba(35,69,107,.26);
+  transition:transform 90ms var(--ease), box-shadow var(--t-fast) var(--ease), background var(--t-fast);
+}
+html[data-theme="dark"] .btn-primary{ box-shadow:0 4px 18px rgba(143,179,216,.24); }
+.btn-primary:hover{ background:var(--accent); color:var(--accent-ink); transform:translateY(-1px); box-shadow:0 7px 20px rgba(35,69,107,.32); }
+.icon-btn{
+  width:32px; height:32px; border-radius:var(--r-sm); display:grid; place-items:center; color:var(--ink-2);
+  transition:background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.icon-btn:hover{ background:var(--soft); color:var(--ink); }
+.icon-btn.on{ background:var(--soft); color:var(--accent); }
+
+/* ---------------- 工作区 ---------------- */
+.workspace{ flex:1; display:flex; min-height:0; }
+
+/* 左栏：题目索引 */
+.rail{
+  width:272px; flex:0 0 272px; background:var(--panel); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; min-height:0;
+}
+.rail-head{ padding:16px 14px 10px; }
+.rail-title{ display:flex; align-items:baseline; gap:8px; margin-bottom:12px; }
+.rail-title h2{
+  margin:0; font-family:var(--font-serif); font-size:15px; letter-spacing:.04em; font-weight:600;
+}
+.rail-title .count{ font-size:11.5px; color:var(--ink-3); }
+.rail-title .spacer{ flex:1; }
+
+.search{
+  display:flex; align-items:center; gap:7px; height:32px; padding:0 10px;
+  background:var(--panel-2); border:1px solid var(--line); border-radius:var(--r-sm);
+  color:var(--ink-3);
+}
+.search:focus-within{ border-color:var(--accent-2); box-shadow:0 0 0 3px var(--soft); }
+.search input{ border:0; outline:0; background:none; color:var(--ink); font:inherit; width:100%; font-size:12.5px; }
+.search input::placeholder{ color:var(--ink-3); }
+
+.chips{ display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+.chip{
+  height:24px; padding:0 9px; border-radius:var(--r-pill); font-size:11.5px; color:var(--ink-2);
+  border:1px solid var(--line); background:transparent; display:inline-flex; align-items:center; gap:5px;
+  transition:all var(--t-fast) var(--ease);
+}
+.chip:hover{ border-color:var(--line-2); color:var(--ink); }
+.chip.on{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.chip .n{ opacity:.6; font-variant-numeric:tabular-nums; }
+
+.qlist{ flex:1; overflow-y:auto; padding:2px 8px 12px; }
+.group-head{
+  display:flex; align-items:center; gap:8px; padding:12px 8px 6px;
+  font-size:10.5px; letter-spacing:.08em; color:var(--ink-3); text-transform:uppercase;
+}
+.group-head .rule{ flex:1; height:1px; background:var(--line); }
+
+.qitem{
+  position:relative; display:flex; gap:10px; padding:9px 8px 9px 10px; border-radius:var(--r-sm);
+  cursor:pointer; transition:background var(--t-fast) var(--ease);
+}
+.qitem:hover{ background:var(--panel-2); }
+.qitem.on{ background:var(--soft); }
+.qitem.on::before{
+  content:""; position:absolute; left:0; top:9px; bottom:9px; width:2.5px; border-radius:2px; background:var(--accent);
+}
+.qno{
+  flex:0 0 26px; height:22px; border-radius:6px; display:grid; place-items:center;
+  font-size:11.5px; font-variant-numeric:tabular-nums; color:var(--ink-2);
+  border:1px solid var(--line); background:var(--panel-2); margin-top:1px;
+}
+.qitem.on .qno{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.qbody{ min-width:0; flex:1; }
+.qstem{
+  font-size:12.5px; line-height:1.5; color:var(--ink); display:-webkit-box; -webkit-line-clamp:2;
+  -webkit-box-orient:vertical; overflow:hidden;
+}
+.qmeta{ display:flex; align-items:center; gap:7px; margin-top:4px; font-size:10.5px; color:var(--ink-3); }
+.dot{ width:3px; height:3px; border-radius:50%; background:var(--line-2); }
+.kind{
+  font-size:10px; padding:1px 6px; border-radius:4px; background:var(--soft); color:var(--accent);
+}
+html[data-theme="dark"] .kind{ color:var(--accent-2); }
+.kind.essay{ background:rgba(168,132,63,.12); color:var(--gold); }
+.flag{ color:var(--warn); }
+
+.rail-foot{
+  border-top:1px solid var(--line); padding:9px 12px; display:flex; align-items:center; gap:6px;
+  font-size:11.5px; color:var(--ink-3);
+}
+.rail-foot .btn{ height:26px; padding:0 8px; font-size:11.5px; }
+
+/* 中间：画布 */
+.stage{ flex:1; position:relative; min-width:0; background:
+  radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,.5), transparent 60%), var(--bg); }
+html[data-theme="dark"] .stage{ background:
+  radial-gradient(1200px 600px at 50% -10%, rgba(120,150,180,.07), transparent 60%), var(--bg); }
+.stage-scroll{ position:absolute; inset:0; overflow:auto; padding:56px 40px 96px; }
+
+.canvas-tools{
+  position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:20;
+  display:flex; align-items:center; gap:2px; padding:4px; height:36px;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-pill);
+  box-shadow:var(--shadow-pop);
+}
+.canvas-tools .txt{ font-size:11.5px; color:var(--ink-2); padding:0 8px; font-variant-numeric:tabular-nums; min-width:44px; text-align:center; }
+.canvas-tools .sep{ width:1px; height:16px; background:var(--line); margin:0 2px; }
+
+/* 纸张 */
+.paper-wrap{ width:640px; margin:0 auto; }
+.paper-sheet{
+  position:relative; background:var(--paper); border-radius:2px;
+  box-shadow:var(--shadow-page); padding:52px 56px 64px; color:#1B1B1B;
+  transition:background var(--t-base) var(--ease), color var(--t-base) var(--ease);
+}
+.paper-sheet::after{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:2px;
+  box-shadow:inset 0 0 0 1px rgba(60,50,35,.05);
+}
+.cn-title{ font-family:var(--font-serif); font-size:19px; font-weight:700; text-align:center; letter-spacing:.04em; }
+.cn-sub{ font-family:var(--font-serif); font-size:15px; text-align:center; margin-top:8px; letter-spacing:.04em; }
+.cn-meta{ display:flex; justify-content:space-between; font-size:11.5px; color:#6B6459; margin-top:16px; padding-bottom:10px; border-bottom:1px solid #E6E0D4; }
+
+.section-head{
+  font-family:var(--font-serif); font-size:14px; font-weight:700; margin:24px 0 10px; letter-spacing:.02em;
+}
+.q{ position:relative; margin:0 -14px; padding:8px 14px; }
+.q-text{ font-size:13.5px; line-height:2.0; letter-spacing:.01em; }
+.q-opt{ display:flex; gap:26px; padding-left:22px; font-size:13.5px; line-height:1.95; }
+.math{ font-family:var(--font-math); font-style:italic; font-size:14.5px; }
+.math .up{ font-style:normal; }
+
+/* 题目框（叠加层） */
+.q.frame::before{
+  content:""; position:absolute; inset:1px -2px; border:1.5px solid rgba(35,69,107,.30);
+  border-radius:10px; pointer-events:none;
+  transition:border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+html[data-theme="dark"] .q.frame::before{ border-color:rgba(143,179,216,.30); }
+.q.frame:hover::before{ border-color:rgba(35,69,107,.55); background:rgba(35,69,107,.02); }
+html[data-theme="dark"] .q.frame:hover::before{ border-color:rgba(143,179,216,.55); background:rgba(143,179,216,.03); }
+.q.frame.on::before{
+  border-color:var(--accent); border-width:2.5px; background:rgba(35,69,107,.05);
+  box-shadow:0 0 0 4px rgba(35,69,107,.08), 0 8px 24px rgba(35,69,107,.10);
+}
+html[data-theme="dark"] .q.frame.on::before{
+  border-color:var(--accent); background:rgba(143,179,216,.06);
+  box-shadow:0 0 0 4px rgba(143,179,216,.10), 0 8px 26px rgba(0,0,0,.35);
+}
+.qtag{
+  position:absolute; top:-13px; left:-10px; z-index:3; height:20px; padding:0 8px 0 7px;
+  display:inline-flex; align-items:center; gap:4px; border-radius:var(--r-pill);
+  background:rgba(35,69,107,.86); color:#fff; font-size:10.5px; letter-spacing:.02em;
+  box-shadow:0 2px 8px rgba(35,69,107,.24); backdrop-filter:blur(4px);
+}
+html[data-theme="dark"] .qtag{ background:rgba(143,179,216,.92); color:#0B1520; }
+.q.frame.on .qtag{ background:var(--accent); color:var(--accent-ink); }
+html[data-theme="dark"] .q.frame.on .qtag{ background:var(--accent); color:#0B1520; }
+
+.handles{ position:absolute; inset:0; pointer-events:none; display:none; }
+.q.frame.on .handles{ display:block; }
+.handles i{
+  position:absolute; width:9px; height:9px; border-radius:50%; background:var(--panel);
+  border:2px solid var(--accent); box-shadow:0 1px 3px rgba(0,0,0,.18);
+}
+.handles i:nth-child(1){ left:-7px; top:-7px; }
+.handles i:nth-child(2){ right:-7px; top:-7px; }
+.handles i:nth-child(3){ left:-7px; bottom:-7px; }
+.handles i:nth-child(4){ right:-7px; bottom:-7px; }
+
+/* 浮动操作条 */
+.float-bar{
+  position:absolute; left:50%; transform:translateX(-50%); bottom:-44px; z-index:24;
+  display:flex; align-items:center; gap:1px; padding:3px; height:34px;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  box-shadow:var(--shadow-pop); white-space:nowrap;
+}
+.float-bar .fb{
+  height:27px; padding:0 8px; border-radius:6px; display:inline-flex; align-items:center; gap:5px;
+  font-size:11.5px; color:var(--ink-2);
+}
+.float-bar .fb:hover{ background:var(--soft); color:var(--ink); }
+.float-bar .fb.danger:hover{ background:rgba(176,58,46,.10); color:var(--danger); }
+.float-bar .fsep{ width:1px; height:15px; background:var(--line); margin:0 2px; }
+
+.page-foot{
+  text-align:center; font-size:11px; color:var(--ink-3); margin-top:22px; letter-spacing:.06em;
+}
+
+/* 右栏：AI */
+.inspector{
+  width:384px; flex:0 0 384px; background:var(--panel); border-left:1px solid var(--line);
+  display:flex; flex-direction:column; min-height:0;
+}
+.insp-head{
+  height:50px; flex:0 0 50px; display:flex; align-items:center; gap:8px; padding:0 10px 0 16px;
+  border-bottom:1px solid var(--line);
+}
+.insp-head h3{ margin:0; font-family:var(--font-serif); font-size:14.5px; font-weight:600; letter-spacing:.04em; }
+.insp-head .tagq{
+  font-size:10.5px; padding:2px 7px; border-radius:var(--r-pill);
+  background:var(--soft); color:var(--accent); border:1px solid transparent;
+}
+html[data-theme="dark"] .insp-head .tagq{ color:var(--accent-2); }
+
+.qcard{ padding:12px 16px 14px; border-bottom:1px solid var(--line); }
+.qcard-top{ display:flex; gap:10px; align-items:flex-start; }
+.thumb{
+  flex:0 0 72px; height:52px; border-radius:6px; background:var(--paper); border:1px solid var(--line);
+  position:relative; overflow:hidden;
+}
+.thumb .ln{ position:absolute; left:6px; height:2px; border-radius:2px; background:#D8D2C6; }
+.qcard-meta{ min-width:0; flex:1; }
+.qcard-meta .t1{ font-size:12.5px; display:flex; align-items:center; gap:6px; }
+.qcard-meta .t2{ font-size:11px; color:var(--ink-3); margin-top:4px; display:flex; align-items:center; gap:5px; }
+.attached{
+  display:inline-flex; align-items:center; gap:4px; font-size:10px; color:var(--ok);
+  background:rgba(47,122,85,.10); padding:1px 6px; border-radius:4px; margin-top:6px;
+}
+
+.chat{ flex:1; overflow-y:auto; padding:16px 16px 8px; display:flex; flex-direction:column; gap:14px; }
+.msg{ display:flex; gap:9px; max-width:100%; }
+.msg .avatar{
+  flex:0 0 24px; width:24px; height:24px; border-radius:50%; display:grid; place-items:center;
+  background:var(--accent); color:var(--accent-ink); margin-top:2px;
+}
+html[data-theme="dark"] .msg .avatar{ color:#0B1520; }
+.bubble{
+  padding:10px 12px; border-radius:10px; font-size:12.5px; line-height:1.75; min-width:0;
+}
+.msg.ai .bubble{ background:var(--panel-2); border:1px solid var(--line); border-top-left-radius:4px; }
+.msg.me{ justify-content:flex-end; }
+.msg.me .bubble{
+  background:var(--soft-2); border:1px solid transparent; border-top-right-radius:4px; max-width:86%;
+}
+.bubble p{ margin:0 0 8px; }
+.bubble p:last-child{ margin-bottom:0; }
+.bubble .step{ display:flex; gap:8px; margin:0 0 7px; }
+.bubble .step .k{
+  flex:0 0 16px; height:16px; border-radius:50%; border:1px solid var(--line-2); font-size:9.5px;
+  display:grid; place-items:center; color:var(--ink-3); margin-top:3px; font-variant-numeric:tabular-nums;
+}
+.formula{
+  margin:8px 0; padding:8px 10px; border-left:2px solid var(--line-2);
+  font-family:var(--font-math); font-size:14px; font-style:italic; color:var(--ink);
+  background:transparent; overflow-x:auto; white-space:nowrap;
+}
+.ai-foot{ display:flex; align-items:center; gap:8px; margin-top:8px; font-size:10.5px; color:var(--ink-3); }
+.ai-foot .mini{ height:22px; padding:0 7px; border-radius:5px; display:inline-flex; align-items:center; gap:4px; }
+.ai-foot .mini:hover{ background:var(--soft); color:var(--ink); }
+
+.presets{ display:flex; gap:6px; padding:0 16px 10px; flex-wrap:wrap; }
+.preset{
+  height:25px; padding:0 10px; border-radius:var(--r-pill); border:1px solid var(--line);
+  font-size:11.5px; color:var(--ink-2); background:transparent;
+  transition:all var(--t-fast) var(--ease);
+}
+.preset:hover{ border-color:var(--accent-2); color:var(--accent); background:var(--soft); }
+
+.composer{ padding:0 12px 12px; }
+.composer-box{
+  border:1px solid var(--line); border-radius:var(--r-md); background:var(--panel-2);
+  transition:border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+  overflow:hidden;
+}
+.composer-box:focus-within{ border-color:var(--accent-2); box-shadow:0 0 0 3px var(--soft); }
+.composer-box textarea{
+  width:100%; border:0; outline:0; resize:none; background:none; color:var(--ink);
+  font:inherit; font-size:12.5px; line-height:1.7; padding:10px 12px 4px; height:62px;
+}
+.composer-row{ display:flex; align-items:center; gap:4px; padding:4px 6px 6px 8px; }
+.composer-row .hint{ font-size:10.5px; color:var(--ink-3); margin-right:auto; padding-left:4px; }
+.send{
+  width:30px; height:30px; border-radius:8px; display:grid; place-items:center;
+  background:var(--accent); color:var(--accent-ink);
+  box-shadow:0 3px 10px rgba(35,69,107,.24);
+}
+html[data-theme="dark"] .send{ color:#0B1520; }
+
+/* 状态栏 */
+.statusbar{
+  height:26px; flex:0 0 26px; display:flex; align-items:center; gap:16px; padding:0 14px;
+  border-top:1px solid var(--line); background:var(--panel); font-size:11px; color:var(--ink-3);
+}
+.statusbar .s{ display:flex; align-items:center; gap:5px; white-space:nowrap; }
+.statusbar .grow{ flex:1; }
+.statusbar .pip{ width:5px; height:5px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 3px rgba(47,122,85,.12); }
+
+/* 空态提示（未选中的动作条） */
+.toast{
+  position:absolute; left:50%; transform:translateX(-50%); bottom:26px; z-index:40;
+  display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:var(--r-pill);
+  background:var(--panel); border:1px solid var(--line); box-shadow:var(--shadow-pop);
+  font-size:11.5px; color:var(--ink-2);
+}
+.toast kbd{
+  font:inherit; font-size:10.5px; padding:1px 5px; border-radius:4px;
+  border:1px solid var(--line-2); background:var(--panel-2); color:var(--ink-2);
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 24 24">
+      <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M9.5 9.3a2.5 2.5 0 1 1 3.5 2.3c-.7.35-1 .9-1 1.6v.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="12" cy="16.6" r="1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M15.6 15.6L20 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.2 8.2 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M19.3 13.5a7.7 7.7 0 0 0 0-3l1.8-1.3-1.9-3.3-2.1.9a7.6 7.6 0 0 0-2.6-1.5L14.2 3h-3.8l-.3 2.3a7.6 7.6 0 0 0-2.6 1.5l-2.1-.9L3.5 9.2l1.8 1.3a7.7 7.7 0 0 0 0 3l-1.8 1.3 1.9 3.3 2.1-.9a7.6 7.6 0 0 0 2.6 1.5l.3 2.3h3.8l.3-2.3a7.6 7.6 0 0 0 2.6-1.5l2.1.9 1.9-3.3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-rescan" viewBox="0 0 24 24"><path d="M12 3.5l1.6 4.4L18 9.5l-4.4 1.6L12 15.5l-1.6-4.4L6 9.5l4.4-1.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M18.4 14.6l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-ai" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8A2.5 2.5 0 0 1 17.5 17H12l-4.6 3.2V17H6.5A2.5 2.5 0 0 1 4 14.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 10.5h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M11 4h6.5A2.5 2.5 0 0 1 20 6.5V13l-7.6 7.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="8" r="1.4" fill="currentColor"/></symbol>
+    <symbol id="i-merge" viewBox="0 0 24 24"><path d="M5 6h5l4 6-4 6H5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 12h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-split" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 3v4M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M9.5 7V4.8h5V7M7 7l.8 12.2a1.6 1.6 0 0 0 1.6 1.5h5.2a1.6 1.6 0 0 0 1.6-1.5L17 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7H5v-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 7a8 8 0 1 1-1 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M5 12h13M12.5 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><path d="M8.5 12.5l6-6a3.2 3.2 0 0 1 4.5 4.5l-8 8a5 5 0 0 1-7-7l7.4-7.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="10.5" height="10.5" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M15 6.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 21V10l4.2-6.2c.4-.6 1.4-.3 1.5.4l.4 4.3h4.4a2 2 0 0 1 2 2.4l-1.2 6.6A2.6 2.6 0 0 1 15.8 21H7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M7 10H4v11h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 3v6h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L6 13h5l-1 8 8-11h-5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <!-- ============ 顶栏 ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg>
+      <div>
+        <div class="name">题目助手</div>
+        <div class="en">PDF QUESTION ASSISTANT</div>
+      </div>
+    </div>
+    <div class="vsep"></div>
+    <button class="file-chip">
+      <svg width="15" height="15"><use href="#i-file"/></svg>
+      <span class="fname">数学分析（上）期中试卷.pdf</span>
+      <span class="meta">4 页</span>
+      <svg width="14" height="14"><use href="#i-chev"/></svg>
+    </button>
+    <div class="top-right">
+      <button class="btn"><svg width="15" height="15"><use href="#i-rescan"/></svg>重新切题</button>
+      <button class="icon-btn" id="themeBtn" title="切换主题"><svg width="16" height="16"><use href="#i-sun"/></svg></button>
+      <button class="icon-btn" title="设置"><svg width="16" height="16"><use href="#i-gear"/></svg></button>
+      <div class="vsep" style="margin:0 4px"></div>
+      <button class="btn btn-primary"><svg width="15" height="15"><use href="#i-ai"/></svg>问 AI</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- ============ 左栏 ============ -->
+    <aside class="rail">
+      <div class="rail-head">
+        <div class="rail-title">
+          <h2>题目</h2><span class="count">18 道</span>
+          <span class="spacer"></span>
+          <button class="icon-btn" style="width:26px;height:26px" title="新增题目框"><svg width="15" height="15"><use href="#i-plus"/></svg></button>
+        </div>
+        <div class="search">
+          <svg width="14" height="14"><use href="#i-search"/></svg>
+          <input placeholder="搜索题号或题干…" />
+        </div>
+        <div class="chips">
+          <button class="chip on">全部 <span class="n">18</span></button>
+          <button class="chip">选择 <span class="n">8</span></button>
+          <button class="chip">填空 <span class="n">6</span></button>
+          <button class="chip">解答 <span class="n">4</span></button>
+        </div>
+      </div>
+
+      <div class="qlist scroll">
+        <div class="group-head"><span>第 1 页</span><span class="rule"></span></div>
+
+        <div class="qitem on" data-q="1">
+          <div class="qno">1</div>
+          <div class="qbody">
+            <div class="qstem">设 <span class="math">f(x)</span> 为分段函数，求 <span class="math">f[f(x)]</span> 的表达式。</div>
+            <div class="qmeta"><span class="kind">填空</span><span class="dot"></span><span>第 1 页</span><span class="dot"></span><span class="flag">已改</span></div>
+          </div>
+        </div>
+
+        <div class="qitem" data-q="2">
+          <div class="qno">2</div>
+          <div class="qbody">
+            <div class="qstem">求极限 <span class="math">lim<sub>n→∞</sub>(1+1/n)<sup>n</sup></span> 的值。</div>
+            <div class="qmeta"><span class="kind">填空</span><span class="dot"></span><span>第 1 页</span></div>
+          </div>
+        </div>
+
+        <div class="qitem" data-q="3">
+          <div class="qno">3</div>
+          <div class="qbody">
+            <div class="qstem">若函数在 <span class="math">x=0</span> 处连续，求常数 <span class="math">a</span> 的取值。</div>
+            <div class="qmeta"><span class="kind">填空</span><span class="dot"></span><span>第 1 页</span></div>
+          </div>
+        </div>
+
+        <div class="group-head"><span>第 1 页 · 选择题</span><span class="rule"></span></div>
+
+        <div class="qitem" data-q="4">
+          <div class="qno">4</div>
+          <div class="qbody">
+            <div class="qstem">下列函数中，在 <span class="math">x=0</span> 处不可导的是（　　）</div>
+            <div class="qmeta"><span class="kind">选择</span><span class="dot"></span><span>4 个选项</span></div>
+          </div>
+        </div>
+
+        <div class="qitem" data-q="5">
+          <div class="qno">5</div>
+          <div class="qbody">
+            <div class="qstem">设 <span class="math">f'(x₀)=2</span>，则 <span class="math">lim<sub>h→0</sub>[f(x₀+h)−f(x₀−h)]/h</span> = （　　）</div>
+            <div class="qmeta"><span class="kind">选择</span><span class="dot"></span><span>第 1 页</span></div>
+          </div>
+        </div>
+
+        <div class="group-head"><span>第 2 页</span><span class="rule"></span></div>
+        <div class="qitem" data-q="6">
+          <div class="qno">6</div>
+          <div class="qbody">
+            <div class="qstem">计算定积分 <span class="math">∫₀¹ x·e<sup>x</sup> dx</span>。</div>
+            <div class="qmeta"><span class="kind essay">解答</span><span class="dot"></span><span>第 2 页</span></div>
+          </div>
+        </div>
+        <div class="qitem" data-q="7">
+          <div class="qno">7</div>
+          <div class="qbody">
+            <div class="qstem">证明数列 <span class="math">{aₙ}</span> 单调有界，并求其极限。</div>
+            <div class="qmeta"><span class="kind essay">解答</span><span class="dot"></span><span>第 2 页</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rail-foot">
+        <svg width="13" height="13"><use href="#i-undo"/></svg>
+        <span>2 处手动调整</span>
+        <span style="flex:1"></span>
+        <button class="btn">撤销</button>
+        <button class="btn" style="color:var(--ink-3)">重做</button>
+      </div>
+    </aside>
+
+    <!-- ============ 中间画布 ============ -->
+    <section class="stage">
+      <div class="canvas-tools">
+        <button class="icon-btn" style="width:26px;height:26px"><svg width="14" height="14"><use href="#i-minus"/></svg></button>
+        <span class="txt">86%</span>
+        <button class="icon-btn" style="width:26px;height:26px"><svg width="14" height="14"><use href="#i-plus"/></svg></button>
+        <span class="sep"></span>
+        <button class="icon-btn" style="width:26px;height:26px" title="适应宽度"><svg width="14" height="14"><use href="#i-fit"/></svg></button>
+        <span class="sep"></span>
+        <span class="txt" style="min-width:auto;padding:0 9px">连续滚动</span>
+      </div>
+
+      <div class="stage-scroll scroll">
+        <div class="paper-wrap">
+          <div class="paper-sheet">
+            <div class="cn-title">北京邮电大学 2025—2026 学年第一学期</div>
+            <div class="cn-sub">《数学分析（上）》期中考试试题</div>
+            <div class="cn-meta"><span>考试时间：120 分钟</span><span>满分：100 分</span></div>
+
+            <div class="section-head">一、填空题（共 30 分，每小题 5 分）</div>
+
+            <div class="q frame on" data-q="1">
+              <span class="qtag">1</span>
+              <div class="handles"><i></i><i></i><i></i><i></i></div>
+              <div class="q-text">
+                1. 设 <span class="math">f(x) = { x, x ≤ 1 ; 0, x &gt; 1 }</span>，则 <span class="math">f[f(x)]</span> = ________。
+              </div>
+              <div class="float-bar">
+                <button class="fb"><svg width="13" height="13"><use href="#i-tag"/></svg>改题号</button>
+                <button class="fb"><svg width="13" height="13"><use href="#i-merge"/></svg>并入上题</button>
+                <button class="fb"><svg width="13" height="13"><use href="#i-split"/></svg>拆分</button>
+                <span class="fsep"></span>
+                <button class="fb danger"><svg width="13" height="13"><use href="#i-trash"/></svg>删除</button>
+              </div>
+            </div>
+
+            <div class="q frame" data-q="2" style="margin-top:22px">
+              <span class="qtag">2</span>
+              <div class="q-text">
+                2. 极限 <span class="math">lim<sub>n→∞</sub> (1 + 1/n)<sup>n</sup></span> = ________。
+              </div>
+            </div>
+
+            <div class="q" data-q="3" style="margin-top:22px">
+              <div class="q-text">
+                3. 若函数 <span class="math">f(x) = (sin ax)/x</span>（<span class="math">x ≠ 0</span>）在 <span class="math">x = 0</span> 处连续，则 <span class="math">a</span> = ________。
+              </div>
+            </div>
+
+            <div class="section-head">二、选择题（共 40 分，每小题 4 分）</div>
+
+            <div class="q frame" data-q="4">
+              <span class="qtag">4</span>
+              <div class="q-text">4. 下列函数中，在 <span class="math">x = 0</span> 处不可导的是（　　）</div>
+              <div class="q-opt">
+                <span>A. <span class="math">|x|</span></span>
+                <span>B. <span class="math">x²</span></span>
+                <span>C. <span class="math">sin x</span></span>
+                <span>D. <span class="math">e<sup>x</sup></span></span>
+              </div>
+            </div>
+
+            <div class="q" data-q="5" style="margin-top:22px">
+              <div class="q-text">
+                5. 设 <span class="math">f′(x₀) = 2</span>，则 <span class="math">lim<sub>h→0</sub> [f(x₀+h) − f(x₀−h)] / h</span> = （　　）
+              </div>
+              <div class="q-opt">
+                <span>A. 2</span><span>B. 4</span><span>C. −2</span><span>D. 不存在</span>
+              </div>
+            </div>
+
+            <div class="section-head">三、解答题（共 30 分）</div>
+            <div class="q" data-q="6">
+              <div class="q-text">6.（10 分）计算定积分 <span class="math">∫₀¹ x e<sup>x</sup> dx</span>。</div>
+            </div>
+            <div class="q" data-q="7" style="margin-top:18px">
+              <div class="q-text">7.（10 分）设 <span class="math">a₁ = 1</span>，<span class="math">a<sub>n+1</sub> = √(2 + a<sub>n</sub>)</span>，证明数列收敛并求极限。</div>
+            </div>
+
+            <div class="page-foot">— 1 —</div>
+          </div>
+        </div>
+
+        <div class="toast">
+          <svg width="13" height="13"><use href="#i-bolt"/></svg>
+          已自动切出 18 道题 · 耗时 240ms
+          <span style="width:1px;height:12px;background:var(--line)"></span>
+          点击框选中，拖角可调
+          <kbd>↑</kbd><kbd>↓</kbd> 切题
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 右栏 AI ============ -->
+    <aside class="inspector">
+      <div class="insp-head">
+        <h3>AI 讲题</h3>
+        <span class="tagq">第 1 题</span>
+        <span style="flex:1"></span>
+        <button class="icon-btn" title="新对话"><svg width="15" height="15"><use href="#i-plus"/></svg></button>
+        <button class="icon-btn" title="收起"><svg width="15" height="15"><use href="#i-close"/></svg></button>
+      </div>
+
+      <div class="qcard">
+        <div class="qcard-top">
+          <div class="thumb">
+            <span class="ln" style="top:10px;width:48px"></span>
+            <span class="ln" style="top:17px;width:58px"></span>
+            <span class="ln" style="top:24px;width:36px"></span>
+            <span class="ln" style="top:31px;width:52px"></span>
+            <span class="ln" style="top:38px;width:30px"></span>
+          </div>
+          <div class="qcard-meta">
+            <div class="t1">填空题 · 第 1 页</div>
+            <div class="t2">置信度 高 · 文本层切题</div>
+            <span class="attached"><svg width="10" height="10"><use href="#i-clip"/></svg>题面截图已附上</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat scroll">
+        <div class="msg me">
+          <div class="bubble">这道题为什么要分 x ≤ 1 和 x &gt; 1 两种情况讨论？直接代入不行吗？</div>
+        </div>
+
+        <div class="msg ai">
+          <div class="avatar"><svg width="13" height="13"><use href="#i-ai"/></svg></div>
+          <div>
+            <div class="bubble">
+              <p>因为 <span class="math">f</span> 是分段定义的，内层 <span class="math">f(x)</span> 落在哪一段，决定了外层该用哪个表达式。判定依据是内层结果是否 <span class="math">≤ 1</span>。</p>
+              <div class="step"><span class="k">1</span><span>先看内层：<span class="math">x ≤ 1</span> 时 <span class="math">f(x)=x</span>，此时 <span class="math">f(x) ≤ 1</span> 仍成立，外层继续用第一段。</span></div>
+              <div class="formula">f[f(x)] = f(x) = x　(x ≤ 1)</div>
+              <div class="step"><span class="k">2</span><span>再看 <span class="math">x &gt; 1</span>：内层 <span class="math">f(x)=0</span>，而 <span class="math">0 ≤ 1</span>，外层应改用第一段。</span></div>
+              <div class="formula">f[f(x)] = f(0) = 0　(x &gt; 1)</div>
+              <p>所以答案是分段函数，不能整体直接代入 —— 关键在于<b>内层输出落在哪一段由外层判定</b>。</p>
+              <div class="ai-foot">
+                <button class="mini"><svg width="12" height="12"><use href="#i-copy"/></svg>复制</button>
+                <button class="mini"><svg width="12" height="12"><use href="#i-thumb"/></svg>有帮助</button>
+                <span>· deepseek-chat · 2.1s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="presets">
+        <button class="preset">只给答案</button>
+        <button class="preset">给思路提示</button>
+        <button class="preset">检查我的解法</button>
+        <button class="preset">换种讲法</button>
+      </div>
+
+      <div class="composer">
+        <div class="composer-box">
+          <textarea placeholder="就这道题继续追问…"></textarea>
+          <div class="composer-row">
+            <button class="icon-btn" style="width:26px;height:26px" title="附加截图"><svg width="14" height="14"><use href="#i-clip"/></svg></button>
+            <span class="hint">题面截图随消息发送 · Enter 发送</span>
+            <button class="send"><svg width="15" height="15"><use href="#i-send"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============ 状态栏 ============ -->
+  <footer class="statusbar">
+    <span class="s"><svg width="12" height="12"><use href="#i-bolt"/></svg>文本层切题 · 18 道 · 92% 自动</span>
+    <span class="s">已手改 2 处</span>
+    <span class="grow"></span>
+    <span class="s"><span class="pip"></span>DeepSeek · deepseek-chat · 已连接</span>
+    <span class="s">v0.1 设计稿</span>
+  </footer>
+</div>
+
+<script>
+// 主题切换（演示用）
+const themeBtn = document.getElementById('themeBtn');
+themeBtn.addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  themeBtn.innerHTML = next === 'dark'
+    ? '<svg width="16" height="16"><use href="#i-moon"/></svg>'
+    : '<svg width="16" height="16"><use href="#i-sun"/></svg>';
+});
+
+// 选中题目：列表与纸面联动
+const items = document.querySelectorAll('.qitem');
+const frames = document.querySelectorAll('.paper-sheet .q');
+function select(n){
+  items.forEach(el => el.classList.toggle('on', el.dataset.q === n));
+  frames.forEach(el => {
+    const on = el.dataset.q === n;
+    el.classList.toggle('on', on);
+    // 只有第 1 题演示"手动新增/可编辑"的浮条
+    const bar = el.querySelector('.float-bar');
+    if (bar) bar.style.display = on ? 'flex' : 'none';
+  });
+}
+items.forEach(el => el.addEventListener('click', () => select(el.dataset.q)));
+frames.forEach(el => el.addEventListener('click', (e) => {
+  if (e.target.closest('.float-bar')) return;
+  select(el.dataset.q);
+}));
+</script>
+</body>
+</html>
