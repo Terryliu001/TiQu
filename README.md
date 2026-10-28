@@ -6,6 +6,21 @@
 
 ---
 
+## 在线使用
+
+[![在线使用](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E4%BD%BF%E7%94%A8-terryliu001.github.io%2FTiQu-23456B?style=flat-square)](https://terryliu001.github.io/TiQu/)
+[![License](https://img.shields.io/badge/license-MIT-23456B?style=flat-square)](LICENSE)
+
+
+浏览器直接打开，不用安装、不用注册、不用登录。第一次打开可以点「打开示例试卷」，看看切题和问 AI 是怎么走的。
+
+> 需要自备一个 AI 服务的 API Key（BYOK）。想让它读题面截图，得选视觉模型，比如通义千问 `qwen-vl-max`、智谱 `glm-4v-plus`、`gpt-4o-mini`；纯文本模型（如 `deepseek-chat`）只能读文字，公式可能错序。配置见下面「接上你的 AI」。
+>
+> 建议用桌面浏览器（Chrome / Edge）。手机端布局是简化版，长卷操作不如电脑顺手。
+
+---
+
+
 ## 能做什么
 
 - **自动框题**：文字版 PDF 走文本层切题；扫描件（没有文字层）走像素版面分析。两份真扫描卷实测 33/33 道题全中。
