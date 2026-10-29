@@ -14,7 +14,27 @@ import {
   type PdfTextItemLike,
 } from './cut/lines';
 
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+// 离线单文件版（file:// 双击打开）无法加载独立 worker 文件：把 worker 模块挂到
+// globalThis.pdfjsWorker，pdf.js 会据此走主线程 fake worker 路径，解析照常工作。
+// 正常部署（http/https）仍用独立 worker，性能更好。
+let workerReady: Promise<void> | null = null;
+function ensureWorker(): Promise<void> {
+  if (workerReady) return workerReady;
+  const isFile = typeof window !== 'undefined' && window.location.protocol === 'file:';
+  if (isFile) {
+    workerReady = import('pdfjs-dist/build/pdf.worker.min.mjs')
+      .then((mod) => {
+        (globalThis as unknown as { pdfjsWorker?: unknown }).pdfjsWorker = mod;
+      })
+      .catch(() => {
+        /* 失败则回退到 pdf.js 默认 fake worker */
+      });
+  } else {
+    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    workerReady = Promise.resolve();
+  }
+  return workerReady;
+}
 
 export class PdfDoc {
   private constructor(
@@ -27,6 +47,7 @@ export class PdfDoc {
   private static cacheOrder: number[] = [];
 
   static async open(file: File): Promise<PdfDoc> {
+    await ensureWorker();
     const data = new Uint8Array(await file.arrayBuffer());
     const doc = await pdfjs.getDocument({ data, isEvalSupported: false }).promise;
     const sizes: PageSize[] = [];

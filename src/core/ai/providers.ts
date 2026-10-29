@@ -103,6 +103,8 @@ export interface AiSettings {
   sendImage: boolean;
   /** 是否附上 PDF 文本层的题面文字（辅助，可能乱序）。 */
   sendText: boolean;
+  /** 深度思考：开启后尽量让模型走推理模式（见 client.ts 的分厂商处理）。 */
+  deepThinking: boolean;
   systemPrompt: string;
 }
 
@@ -126,6 +128,7 @@ export function defaultSettings(): AiSettings {
     // 默认这家不支持图片，开关就落到关；换到视觉模型时 chooseProvider 会自动打开
     sendImage: provider.vision,
     sendText: true,
+    deepThinking: false,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
   };
 }

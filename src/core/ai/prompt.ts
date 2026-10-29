@@ -76,3 +76,34 @@ export function payloadFor(question: Question, image: string | null, text: strin
     textProvenance: clean ? (question.source === 'rule' ? 'pdfTextLayer' : 'scan') : 'none',
   };
 }
+
+/**
+ * 知识词条上下文：把词条名 + 章节 + 正文（含 LaTeX）作为用户消息发给模型，
+ * 不带图片。模型和 KaTeX 都能直接读 LaTeX，所以文字即权威来源（与题面截图策略相反）。
+ */
+export interface TermContext {
+  name: string;
+  chapterName: string;
+  body: string;
+}
+
+export function buildTermTurns(
+  systemPrompt: string,
+  term: TermContext,
+  history: { role: 'user' | 'assistant'; content: string }[],
+  ask: string,
+): ChatTurn[] {
+  const context = `【数学分析词条】${term.name}（所属章节：${term.chapterName}）\n\n${term.body}`;
+  const userAsk = ask.trim() || '请讲解这个词条的定义、核心思想与典型用法，重点说清公式的含义。';
+  const turns: ChatTurn[] = [
+    {
+      role: 'system',
+      content:
+        systemPrompt +
+        '\n\n你正在回答关于「数学分析」知识词条的问题。下面给出了用户选中的词条完整内容（含 LaTeX 公式）。请基于它作答；若问题超出词条范围，可结合你的数学知识补充，但优先紧扣词条本身。',
+    },
+  ];
+  for (const message of history) turns.push({ role: message.role, content: message.content });
+  turns.push({ role: 'user', content: `${context}\n\n---\n${userAsk}` });
+  return turns;
+}

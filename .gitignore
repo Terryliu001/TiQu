@@ -10,3 +10,4 @@ test-output
 
 # 开发截图
 .shot*.png
+scripts/smoke-screenshot.png

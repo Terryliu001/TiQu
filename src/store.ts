@@ -50,6 +50,7 @@ interface AppState {
   editing: boolean;
   settingsOpen: boolean;
   shortcutsOpen: boolean;
+  view: 'workbench' | 'knowledge';
   toast: Toast | null;
 
   // AI
@@ -71,6 +72,7 @@ interface AppState {
   toggleEditing: () => void;
   setSettingsOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
+  setView: (view: 'workbench' | 'knowledge') => void;
   showToast: (text: string, kind?: Toast['kind']) => void;
 
   commit: (op: Correction) => void;
@@ -110,6 +112,7 @@ export const useApp = create<AppState>((set, get) => ({
   editing: false,
   settingsOpen: false,
   shortcutsOpen: false,
+  view: 'workbench',
   toast: null,
 
   settings: defaultSettings(),
@@ -251,6 +254,7 @@ export const useApp = create<AppState>((set, get) => ({
   toggleEditing: () => set({ editing: !get().editing }),
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   setShortcutsOpen: (open) => set({ shortcutsOpen: open }),
+  setView: (view) => set({ view }),
 
   showToast(text, kind = 'info') {
     const toast = { id: Date.now(), text, kind };

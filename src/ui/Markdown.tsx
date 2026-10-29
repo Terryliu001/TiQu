@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { normalizeMath } from '../core/ai/normalizeMath';
 
 export function Markdown({ children }: { children: string }) {
   return (
@@ -18,7 +19,7 @@ export function Markdown({ children }: { children: string }) {
         ),
       }}
     >
-      {children}
+      {normalizeMath(children)}
     </ReactMarkdown>
   );
 }

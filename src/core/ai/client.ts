@@ -57,26 +57,25 @@ export async function streamChat(
   if (!base) throw new AiError('notConfigured', '还没有填写 API 地址');
   const url = `${base}/chat/completions`;
 
-  const body = {
-    model: settings.model,
-    messages: turns.map(toApiMessage),
-    temperature: settings.temperature,
-    max_tokens: settings.maxTokens,
-    stream: true,
-    stream_options: { include_usage: true },
-  };
-
-  let response: Response;
-  try {
-    response = await fetch(url, {
+  const send = (payload: Record<string, unknown>) =>
+    fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${settings.apiKey}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
       signal,
     });
+
+  let response: Response;
+  try {
+    response = await send(buildRequestBody(settings, turns, settings.deepThinking));
+    // 深度思考的参数（推理模型 / reasoning_effort / enable_thinking）不一定被每家接受；
+    // 若返回 400，降级为普通请求重试一次，避免「开关一开就报错」。
+    if (!response.ok && response.status === 400 && settings.deepThinking) {
+      response = await send(buildRequestBody(settings, turns, false));
+    }
   } catch (error) {
     if ((error as Error).name === 'AbortError') throw new AiError('aborted', '已取消');
     // 浏览器里 fetch 被跨域拦截时只会给一个 TypeError，没有更多信息。
@@ -138,6 +137,52 @@ export async function streamChat(
   } finally {
     reader.releaseLock();
   }
+}
+
+/**
+ * 组装请求体。deep=true 时按厂商尽量启用「深度思考」：
+ *   - DeepSeek：切到 deepseek-reasoner（其推理过程走 reasoning_content），并去掉不被支持的 temperature；
+ *   - 通义千问（DashScope 兼容模式）：enable_thinking=true；
+ *   - 智谱 GLM：thinking={type:'enabled'}；
+ *   - 其余（OpenAI / Kimi / 硅基流动 / 自定义）：reasoning_effort='medium'。
+ * 若网关不接受，streamChat 会在 400 时用 deep=false 重试一次。
+ */
+function buildRequestBody(
+  settings: AiSettings,
+  turns: ChatTurn[],
+  deep: boolean,
+): Record<string, unknown> {
+  let model = settings.model;
+  const extras: Record<string, unknown> = {};
+  let omitTemperature = false;
+
+  if (deep) {
+    switch (settings.providerId) {
+      case 'deepseek':
+        model = 'deepseek-reasoner';
+        omitTemperature = true;
+        break;
+      case 'qwen':
+        extras.enable_thinking = true;
+        break;
+      case 'zhipu':
+        extras.thinking = { type: 'enabled' };
+        break;
+      default:
+        extras.reasoning_effort = 'medium';
+    }
+  }
+
+  const body: Record<string, unknown> = {
+    model,
+    messages: turns.map(toApiMessage),
+    max_tokens: settings.maxTokens,
+    stream: true,
+    stream_options: { include_usage: true },
+  };
+  if (!omitTemperature) body.temperature = settings.temperature;
+  Object.assign(body, extras);
+  return body;
 }
 
 function toApiMessage(turn: ChatTurn) {
@@ -208,7 +253,7 @@ export async function testConnection(settings: AiSettings): Promise<{ ok: boolea
   try {
     let received = '';
     await streamChat(
-      { ...settings, maxTokens: 8, temperature: 0 },
+      { ...settings, deepThinking: false, maxTokens: 8, temperature: 0 },
       [
         { role: 'system', content: '只回一个词：ok' },
         { role: 'user', content: 'ping' },

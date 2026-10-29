@@ -1,16 +1,19 @@
 {
   "name": "tiqu",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "题取 —— 把 PDF 试卷变成可点选的题目，一键问自己的 AI",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:single": "tsc --noEmit && vite build --mode singlefile",
     "preview": "vite preview --host",
     "test": "vitest run"
   },
   "dependencies": {
+    "@types/d3-force": "^3.0.10",
+    "d3-force": "^3.0.0",
     "idb": "^8.0.0",
     "katex": "^0.16.11",
     "pdfjs-dist": "^4.10.38",
@@ -30,6 +33,7 @@
     "puppeteer-core": "^25.16.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",
+    "vite-plugin-singlefile": "^2.3.4",
     "vitest": "^2.1.8"
   }
 }

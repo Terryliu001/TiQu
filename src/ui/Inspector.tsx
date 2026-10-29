@@ -23,6 +23,7 @@ export function Inspector() {
   const stop = useApp((s) => s.stop);
   const clearChat = useApp((s) => s.clearChat);
   const setSettingsOpen = useApp((s) => s.setSettingsOpen);
+  const updateSettings = useApp((s) => s.updateSettings);
   const toggleInspector = useApp((s) => s.toggleInspector);
   const select = useApp((s) => s.select);
 
@@ -260,6 +261,19 @@ export function Inspector() {
                 <span className="hint">
                   {configured ? `${provider.name} · ${settings.model}` : '未配置'}
                 </span>
+                <button
+                  className={`think-toggle${settings.deepThinking ? ' on' : ''}`}
+                  title={
+                    settings.deepThinking
+                      ? '深度思考：已开启（推理模型 / 推理参数）'
+                      : '深度思考：已关闭，点击开启（DeepSeek 会切到推理模型 deepseek-reasoner）'
+                  }
+                  disabled={streaming}
+                  onClick={() => updateSettings({ deepThinking: !settings.deepThinking })}
+                >
+                  <Icon name="spark" size={12} />
+                  深度思考
+                </button>
                 {streaming ? (
                   <button className="send stop" onClick={stop} title="停止">
                     <Icon name="stop" size={13} />

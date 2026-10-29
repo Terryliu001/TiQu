@@ -14,6 +14,8 @@ import { Rail } from './ui/Rail';
 import { SettingsDialog } from './ui/SettingsDialog';
 import { ShortcutsDialog } from './ui/ShortcutsDialog';
 import { TopBar } from './ui/TopBar';
+import { KnowledgeTree } from './ui/KnowledgeTree';
+import { useKnowledge } from './store/knowledge';
 import { makeManualQuestion } from './core/corrections';
 import { providerOf } from './core/ai/providers';
 
@@ -36,6 +38,7 @@ export function App() {
   const settings = useApp((s) => s.settings);
   const toast = useApp((s) => s.toast);
   const streaming = useApp((s) => s.streaming);
+  const view = useApp((s) => s.view);
   const init = useApp((s) => s.init);
   const openFile = useApp((s) => s.openFile);
   const undo = useApp((s) => s.undo);
@@ -47,6 +50,10 @@ export function App() {
   const setSettingsOpen = useApp((s) => s.setSettingsOpen);
   const showToast = useApp((s) => s.showToast);
   const commit = useApp((s) => s.commit);
+
+  const kTerms = useKnowledge((s) => s.terms);
+  const kLinks = useKnowledge((s) => s.links);
+  const kSelected = useKnowledge((s) => s.selectedId);
 
   const [hot, setHot] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -249,7 +256,26 @@ export function App() {
       <IconSprite />
       <TopBar />
 
-      {project ? (
+      {view === 'knowledge' ? (
+        <>
+          <KnowledgeTree />
+          <footer className="statusbar">
+            <span className="s">
+              <Icon name="graph" size={12} />
+              知识树 · {kTerms.length} 词条 · {kLinks.length} 关联
+            </span>
+            <span className="grow" />
+            {kSelected && (
+              <span className="s">已选：{kTerms.find((t) => t.id === kSelected)?.name ?? ''}</span>
+            )}
+            {streaming && <span className="s">AI 正在回答…</span>}
+            <span className="s">
+              <span className={`pip${configured ? '' : ' off'}`} />
+              {configured ? `${provider.name} · ${settings.model}` : 'AI 未配置'}
+            </span>
+          </footer>
+        </>
+      ) : project ? (
         <>
           <div className="workspace">
             <Rail />

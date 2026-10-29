@@ -111,6 +111,20 @@ export function IconSprite() {
           <rect x="3" y="6" width="18" height="12" rx="2.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
           <path d="M7 10h.01M11 10h.01M15 10h.01M18 10h.01M7 13.5h.01M18 13.5h.01M9 13.5h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </symbol>
+        <symbol id="i-graph" viewBox="0 0 24 24">
+          <circle cx="6" cy="7" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="18" cy="7" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <circle cx="12" cy="18" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M7.8 8.6 10.4 16M16.2 8.6 13.6 16M8.2 7h7.6" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </symbol>
+        <symbol id="i-doc" viewBox="0 0 24 24">
+          <rect x="5" y="3.5" width="14" height="17" rx="2.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </symbol>
+        <symbol id="i-spark" viewBox="0 0 24 24">
+          <path d="M12 3.2l1.7 4.9 4.9 1.7-4.9 1.7L12 16.4l-1.7-4.9L5.4 9.8l4.9-1.7z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M18.4 15.2l.6 1.8 1.8.6-1.8.6-.6 1.8-.6-1.8-1.8-.6 1.8-.6z" fill="currentColor" />
+        </symbol>
       </defs>
     </svg>
   );

@@ -19,9 +19,12 @@ export function TopBar() {
   const recut = useApp((s) => s.recut);
   const openFile = useApp((s) => s.openFile);
   const cutting = useApp((s) => s.cutting);
+  const view = useApp((s) => s.view);
+  const setView = useApp((s) => s.setView);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const pick = () => inputRef.current?.click();
+  const isBench = view === 'workbench';
 
   return (
     <header className="topbar">
@@ -35,45 +38,74 @@ export function TopBar() {
         </div>
       </div>
 
-      <div className="vsep" />
+      <div className="view-switch" role="tablist" aria-label="视图切换">
+        <button
+          className={`vs${isBench ? ' on' : ''}`}
+          role="tab"
+          aria-selected={isBench}
+          onClick={() => setView('workbench')}
+        >
+          <Icon name="doc" size={14} />
+          工作台
+        </button>
+        <button
+          className={`vs${!isBench ? ' on' : ''}`}
+          role="tab"
+          aria-selected={!isBench}
+          onClick={() => setView('knowledge')}
+        >
+          <Icon name="graph" size={14} />
+          知识树
+        </button>
+      </div>
 
-      <button className="file-chip" onClick={pick} title="打开另一份 PDF">
-        <Icon name="file" size={15} />
-        <span className="fname">{project?.fileName ?? '打开 PDF'}</span>
-        {project && <span className="meta">{project.pageCount} 页</span>}
-        <Icon name="chev" size={14} />
-      </button>
+      {isBench && (
+        <>
+          <div className="vsep" />
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="application/pdf,.pdf"
-        hidden
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) void openFile(file);
-          e.target.value = '';
-        }}
-      />
+          <button className="file-chip" onClick={pick} title="打开另一份 PDF">
+            <Icon name="file" size={15} />
+            <span className="fname">{project?.fileName ?? '打开 PDF'}</span>
+            {project && <span className="meta">{project.pageCount} 页</span>}
+            <Icon name="chev" size={14} />
+          </button>
+
+          <input
+            ref={inputRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            hidden
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void openFile(file);
+              e.target.value = '';
+            }}
+          />
+        </>
+      )}
 
       <div className="top-right">
-        <button
-          className={`btn${editing ? ' primary' : ''}`}
-          onClick={toggleEditing}
-          title="编辑模式（E）：在卷面上画新框"
-        >
-          <Icon name="edit" size={15} />
-          <span>{editing ? '正在编辑' : '编辑框'}</span>
-        </button>
+        {isBench && (
+          <>
+            <button
+              className={`btn${editing ? ' primary' : ''}`}
+              onClick={toggleEditing}
+              title="编辑模式（E）：在卷面上画新框"
+            >
+              <Icon name="edit" size={15} />
+              <span>{editing ? '正在编辑' : '编辑框'}</span>
+            </button>
 
-        <button className="btn" onClick={() => void recut()} disabled={!pdf || Boolean(cutting)} title="重新切题（保留手改）">
-          <Icon name="rescan" size={15} />
-          <span>重新切题</span>
-        </button>
+            <button className="btn" onClick={() => void recut()} disabled={!pdf || Boolean(cutting)} title="重新切题（保留手改）">
+              <Icon name="rescan" size={15} />
+              <span>重新切题</span>
+            </button>
 
-        <button className="icon-btn" onClick={toggleRail} title="折叠题目栏（[）">
-          <Icon name={railOpen ? 'chev' : 'chev'} size={16} style={{ transform: railOpen ? 'rotate(90deg)' : 'rotate(-90deg)' }} />
-        </button>
+            <button className="icon-btn" onClick={toggleRail} title="折叠题目栏（[）">
+              <Icon name={railOpen ? 'chev' : 'chev'} size={16} style={{ transform: railOpen ? 'rotate(90deg)' : 'rotate(-90deg)' }} />
+            </button>
+          </>
+        )}
 
         <button
           className="icon-btn"
