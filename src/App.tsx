@@ -15,7 +15,9 @@ import { SettingsDialog } from './ui/SettingsDialog';
 import { ShortcutsDialog } from './ui/ShortcutsDialog';
 import { TopBar } from './ui/TopBar';
 import { KnowledgeTree } from './ui/KnowledgeTree';
+import { QBank } from './ui/QBank';
 import { useKnowledge } from './store/knowledge';
+import { BANK_STATS } from './core/qbank/seed';
 import { makeManualQuestion } from './core/corrections';
 import { providerOf } from './core/ai/providers';
 
@@ -256,7 +258,22 @@ export function App() {
       <IconSprite />
       <TopBar />
 
-      {view === 'knowledge' ? (
+      {view === 'qbank' ? (
+        <>
+          <QBank />
+          <footer className="statusbar">
+            <span className="s">
+              <Icon name="shelf" size={12} />
+              题库 · {BANK_STATS.books} 册 · {BANK_STATS.questions} 题
+            </span>
+            <span className="grow" />
+            <span className="s">
+              <span className={`pip${configured ? '' : ' off'}`} />
+              {configured ? `${provider.name} · ${settings.model}` : 'AI 未配置'}
+            </span>
+          </footer>
+        </>
+      ) : view === 'knowledge' ? (
         <>
           <KnowledgeTree />
           <footer className="statusbar">

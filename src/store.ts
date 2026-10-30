@@ -50,7 +50,7 @@ interface AppState {
   editing: boolean;
   settingsOpen: boolean;
   shortcutsOpen: boolean;
-  view: 'workbench' | 'knowledge';
+  view: 'workbench' | 'knowledge' | 'qbank';
   toast: Toast | null;
 
   // AI
@@ -72,7 +72,7 @@ interface AppState {
   toggleEditing: () => void;
   setSettingsOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
-  setView: (view: 'workbench' | 'knowledge') => void;
+  setView: (view: 'workbench' | 'knowledge' | 'qbank') => void;
   showToast: (text: string, kind?: Toast['kind']) => void;
 
   commit: (op: Correction) => void;

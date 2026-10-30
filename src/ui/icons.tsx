@@ -125,6 +125,12 @@ export function IconSprite() {
           <path d="M12 3.2l1.7 4.9 4.9 1.7-4.9 1.7L12 16.4l-1.7-4.9L5.4 9.8l4.9-1.7z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
           <path d="M18.4 15.2l.6 1.8 1.8.6-1.8.6-.6 1.8-.6-1.8-1.8-.6 1.8-.6z" fill="currentColor" />
         </symbol>
+        <symbol id="i-shelf" viewBox="0 0 24 24">
+          <rect x="3.6" y="5" width="3.8" height="12.2" rx="0.9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <rect x="8.6" y="7" width="3.8" height="10.2" rx="0.9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M14.4 7.9l3.6 1.1-3.2 9.3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M3 19.6h17.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </symbol>
       </defs>
     </svg>
   );

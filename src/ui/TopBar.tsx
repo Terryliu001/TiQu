@@ -40,22 +40,31 @@ export function TopBar() {
 
       <div className="view-switch" role="tablist" aria-label="视图切换">
         <button
-          className={`vs${isBench ? ' on' : ''}`}
+          className={`vs${view === 'workbench' ? ' on' : ''}`}
           role="tab"
-          aria-selected={isBench}
+          aria-selected={view === 'workbench'}
           onClick={() => setView('workbench')}
         >
           <Icon name="doc" size={14} />
           工作台
         </button>
         <button
-          className={`vs${!isBench ? ' on' : ''}`}
+          className={`vs${view === 'knowledge' ? ' on' : ''}`}
           role="tab"
-          aria-selected={!isBench}
+          aria-selected={view === 'knowledge'}
           onClick={() => setView('knowledge')}
         >
           <Icon name="graph" size={14} />
           知识树
+        </button>
+        <button
+          className={`vs${view === 'qbank' ? ' on' : ''}`}
+          role="tab"
+          aria-selected={view === 'qbank'}
+          onClick={() => setView('qbank')}
+        >
+          <Icon name="shelf" size={14} />
+          题库
         </button>
       </div>
 
